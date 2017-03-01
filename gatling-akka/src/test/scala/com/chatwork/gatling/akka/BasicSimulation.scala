@@ -20,8 +20,7 @@ class BasicSimulation extends Simulation {
     case PingerPonger.Pong => true
     case _ => false
   }
-  val p = TestProbe()
-  val s = scenario("ping-pong-ping-pong").exec(akka("ping1", p.ref, ponger).ask(PingerPonger.Ping, expectation)).exec(akka("ping2", p.ref, ponger).ask(PingerPonger.Ping, expectation))
+  val s = scenario("ping-pong-ping-pong").exec(akka("ping1", ponger).ask(PingerPonger.Ping, expectation)).exec(akka("ping2", ponger).ask(PingerPonger.Ping, expectation))
   setUp(
     s.inject(constantUsersPerSec(10) during (10 seconds))
   ).protocols(akkaConfig)
