@@ -13,4 +13,14 @@ trait AkkaCheckSupport {
       if (message == response.message) CheckResult(Some(response), None).success else Failure(s"${response.message} expected but got $message.")
     }
   })
+
+  def expectMsgPF(pf: PartialFunction[Any, Validation[CheckResult]]) = AkkaCheck(new Check[Response] {
+    override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
+      if (pf.isDefinedAt(response.message)) {
+        pf(response.message)
+      } else {
+        Failure(s"${response.message} is not expected.")
+      }
+    }
+  })
 }
