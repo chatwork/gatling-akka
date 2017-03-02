@@ -1,6 +1,6 @@
 package com.chatwork.gatling.akka
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{ Actor, ActorSystem, Props }
 import com.typesafe.config.ConfigFactory
 import io.gatling.core.Predef._
 
@@ -17,12 +17,12 @@ class BasicSimulation extends Simulation {
   val ponger = system.actorOf(PingerPonger.ponger)
   val receivePong: Any => Boolean = {
     case PingerPonger.Pong => true
-    case _ => false
+    case _                 => false
   }
 
   val s = scenario("ping-pong-ping-pong")
-    .exec((akka("ping-1").to(ponger) ? PingerPonger.Ping).expect(receivePong))
-    .exec((akka("ping-2").to(ponger) ? PingerPonger.Ping).expect(receivePong))
+    .exec(akka("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
+    .exec(akka("ping-2").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
 
   setUp(
     s.inject(constantUsersPerSec(10) during (10 seconds))
