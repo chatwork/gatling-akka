@@ -17,7 +17,7 @@ class BasicSimulation extends Simulation {
   val ponger = system.actorOf(PingerPonger.ponger)
   val receivePong: Any => Boolean = {
     case PingerPonger.Pong => true
-    case _ => false
+    case _                 => false
   }
 
   val s = scenario("ping-pong-ping-pong")

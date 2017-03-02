@@ -18,11 +18,11 @@ import io.gatling.core.util.NameGen
 import scala.util.{ Failure, Success }
 
 case class AskAction(
-    attr: AskRequestAttributes,
+    attr:           AskRequestAttributes,
     coreComponents: CoreComponents,
-    protocol: AkkaProtocol,
-    system: ActorSystem,
-    next: Action
+    protocol:       AkkaProtocol,
+    system:         ActorSystem,
+    next:           Action
 ) extends ExitableAction with NameGen {
 
   override def name: String = genName("akkaAsk")
@@ -51,7 +51,7 @@ case class AskAction(
             val (checkSaveUpdate, checkError) = Check.check(Response(msg), session, attr.checks)
             val status = checkError match {
               case None => OK
-              case _ => KO
+              case _    => KO
             }
             writeData(checkSaveUpdate(session), status, requestTimestamp, checkError.map(_.message))
           case Failure(th) =>
@@ -65,7 +65,7 @@ case class AskAction(
   private def configureAttr(session: Session): Validation[(String, ActorRef, ActorRef, Any)] = {
     val messageExpr: Expression[Any] = attr.message match {
       case Some(expr) => expr
-      case None => (s: Session) => io.gatling.commons.validation.Failure("Message to send to an actor is required.")
+      case None       => (s: Session) => io.gatling.commons.validation.Failure("Message to send to an actor is required.")
     }
     for {
       requestName <- attr.requestName(session)
