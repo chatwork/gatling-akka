@@ -4,39 +4,40 @@ import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
 import com.chatwork.gatling.akka.config.AkkaProtocol
 import com.chatwork.gatling.akka.request.AskRequestAttributes
-import io.gatling.commons.stats.{ KO, OK }
+import com.chatwork.gatling.akka.response.Response
+import io.gatling.commons.stats.{ KO, OK, Status }
 import io.gatling.commons.util.ClockSingleton._
 import io.gatling.commons.validation.Validation
 import io.gatling.core.CoreComponents
 import io.gatling.core.action.{ Action, ExitableAction }
-import io.gatling.core.session.Session
+import io.gatling.core.check.Check
+import io.gatling.core.session.{ Expression, Session }
 import io.gatling.core.stats.StatsEngine
 import io.gatling.core.stats.message.ResponseTimings
 import io.gatling.core.util.NameGen
-
 import scala.util.{ Failure, Success }
 
-case class AskAction[+M](
-    attr: AskRequestAttributes[M],
+case class AskAction(
+    attr:           AskRequestAttributes,
     coreComponents: CoreComponents,
-    protocol: AkkaProtocol,
-    system: ActorSystem,
-    next: Action
+    protocol:       AkkaProtocol,
+    system:         ActorSystem,
+    next:           Action
 ) extends ExitableAction with NameGen {
 
   override def name: String = genName("akkaAsk")
 
   override def execute(session: Session): Unit = recover(session) {
     configureAttr(session).map {
-      case (requestName, sender, recipient, message, expected) =>
+      case (requestName, sender, recipient, message) =>
 
-        def writeData(isSuccess: Boolean, _startTimeStamp: Long, logMessage: Option[String]) = {
+        def writeData(session: Session, status: Status, _startTimeStamp: Long, logMessage: Option[String]) = {
           val requestEndTime = nowMillis
           statsEngine.logResponse(
             session,
             requestName,
             ResponseTimings(startTimestamp = _startTimeStamp, endTimestamp = requestEndTime),
-            if (isSuccess) OK else KO,
+            status,
             None,
             logMessage
           )
@@ -46,27 +47,31 @@ case class AskAction[+M](
         val requestTimestamp = nowMillis
         import system.dispatcher
         recipient.ask(message)(protocol.askTimeout, sender).onComplete {
-          case Success(msg) => msg match {
-            case msg if expected(msg) =>
-              writeData(isSuccess = true, requestTimestamp, None)
-            case msg =>
-              writeData(isSuccess = false, requestTimestamp, Some(s"received message($msg) is not equal to expected($expected)"))
-          }
+          case Success(msg) =>
+            val (checkSaveUpdate, checkError) = Check.check(Response(msg), session, attr.checks)
+            val status = checkError match {
+              case None => OK
+              case _    => KO
+            }
+            writeData(checkSaveUpdate(session), status, requestTimestamp, checkError.map(_.message))
           case Failure(th) =>
-            writeData(isSuccess = false, requestTimestamp, Some(th.getMessage))
+            writeData(session, KO, requestTimestamp, Some(th.getMessage))
         }
     }
   }
 
   override def statsEngine: StatsEngine = coreComponents.statsEngine
 
-  private def configureAttr(session: Session): Validation[(String, ActorRef, ActorRef, M, Any => Boolean)] = {
+  private def configureAttr(session: Session): Validation[(String, ActorRef, ActorRef, Any)] = {
+    val messageExpr: Expression[Any] = attr.message match {
+      case Some(expr) => expr
+      case None       => (s: Session) => io.gatling.commons.validation.Failure("Message to send to an actor is required.")
+    }
     for {
       requestName <- attr.requestName(session)
       sender <- attr.sender(session)
       recipient <- attr.recipient(session)
-      message <- attr.message(session)
-      expected <- attr.expected(session)
-    } yield (requestName, sender, recipient, message, expected)
+      message <- messageExpr(session)
+    } yield (requestName, sender, recipient, message)
   }
 }

@@ -2,6 +2,7 @@ package com.chatwork.gatling.akka.request
 
 import akka.actor.{ Actor, ActorRef }
 import com.chatwork.gatling.akka.action.AskAction
+import com.chatwork.gatling.akka.check.AkkaCheck
 import com.chatwork.gatling.akka.config.{ AkkaProtocol, AkkaProtocolComponents }
 import io.gatling.commons.validation.Success
 import io.gatling.core.action.Action
@@ -9,8 +10,29 @@ import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.session.{ Expression, Session }
 import io.gatling.core.structure.ScenarioContext
 
-case class AkkaRequestBuilder(requestName: Expression[String]) {
-  def to(recipient: Expression[ActorRef]) = AkkaActionBuilder(requestName, recipient)
+class AkkaRequestBuilder(requestName: Expression[String]) {
+
+  def to(recipient: Expression[ActorRef]): AskRequestBuilder = {
+
+    AskRequestBuilder(AskRequestAttributes(requestName, recipient))
+  }
+
+}
+
+case class AskRequestBuilder(askAttributes: AskRequestAttributes) {
+  def to(recipient: Expression[ActorRef]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(recipient = recipient))
+
+  def withSender(sender: Expression[ActorRef]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(sender = sender))
+
+  def ask(message: Expression[Any]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(message = Some(message)))
+
+  def ?(message: Expression[Any]): AskRequestBuilder = ask(message)
+
+  def check(checks: AkkaCheck*): AskRequestBuilder = copy(askAttributes = askAttributes.copy(checks = askAttributes.checks ::: checks.toList))
+}
+
+object AskRequestBuilder {
+  implicit def toActionBuilder(requestBuilder: AskRequestBuilder): AskActionBuilder = AskActionBuilder(requestBuilder)
 }
 
 sealed trait AkkaRequestAttributes {
@@ -18,34 +40,22 @@ sealed trait AkkaRequestAttributes {
   val recipient: Expression[ActorRef]
 }
 
-case class AskRequestAttributes[+M](
+case class AskRequestAttributes(
   requestName: Expression[String],
-  sender: Expression[ActorRef],
-  recipient: Expression[ActorRef],
-  message: Expression[M],
-  expected: Expression[Any => Boolean]
+  recipient:   Expression[ActorRef],
+  sender:      Expression[ActorRef]    = AskRequestAttributes.noSender,
+  message:     Option[Expression[Any]] = None,
+  checks:      List[AkkaCheck]         = Nil
 ) extends AkkaRequestAttributes
 
-case class AkkaActionBuilder(requestName: Expression[String], recipient: Expression[ActorRef]) {
+object AskRequestAttributes {
   private val noSender: Expression[ActorRef] = (_: Session) => Success(Actor.noSender)
-  private def defaultExpect = (s: Session) => Success((_: Any) => true)
-  def ?[M](message: Expression[M]) = AskActionBuilder(AskRequestAttributes(
-    requestName,
-    noSender,
-    recipient,
-    message,
-    defaultExpect
-  ))
 }
 
-case class AskActionBuilder[+M](attr: AskRequestAttributes[M]) extends ActionBuilder {
-  def sender(sender: Expression[ActorRef]) = copy(attr = attr.copy(sender = sender))
-
-  def expect(expect: Expression[Any => Boolean]) = copy(attr = attr.copy(expected = expect))
-
+case class AskActionBuilder(requestBuilder: AskRequestBuilder) extends ActionBuilder {
   override def build(ctx: ScenarioContext, next: Action): Action = {
     import ctx._
     val akkaComponents: AkkaProtocolComponents = protocolComponentsRegistry.components(AkkaProtocol.protocolKey)
-    AskAction(attr, coreComponents, akkaComponents.protocol, system, next)
+    AskAction(requestBuilder.askAttributes, coreComponents, akkaComponents.protocol, system, next)
   }
 }
