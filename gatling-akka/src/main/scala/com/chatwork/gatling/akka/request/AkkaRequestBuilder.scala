@@ -42,10 +42,10 @@ sealed trait AkkaRequestAttributes {
 
 case class AskRequestAttributes(
   requestName: Expression[String],
-  recipient:   Expression[ActorRef],
-  sender:      Expression[ActorRef]    = AskRequestAttributes.noSender,
-  message:     Option[Expression[Any]] = None,
-  checks:      List[AkkaCheck]         = Nil
+  recipient: Expression[ActorRef],
+  sender: Expression[ActorRef] = AskRequestAttributes.noSender,
+  message: Option[Expression[Any]] = None,
+  checks: List[AkkaCheck] = Nil
 ) extends AkkaRequestAttributes
 
 object AskRequestAttributes {
