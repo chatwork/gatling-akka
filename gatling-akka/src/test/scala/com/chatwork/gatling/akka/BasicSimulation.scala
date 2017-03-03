@@ -22,7 +22,9 @@ class BasicSimulation extends Simulation {
 
   val s = scenario("ping-pong-ping-pong")
     .exec(akka("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
-    .exec(akka("ping-2").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
+    .exec(akka("ping-2").to(ponger) ? PingerPonger.Ping check expectMsgPF {
+      case PingerPonger.Pong => PingerPonger.Pong
+    })
 
   setUp(
     s.inject(constantUsersPerSec(10) during (10 seconds))
