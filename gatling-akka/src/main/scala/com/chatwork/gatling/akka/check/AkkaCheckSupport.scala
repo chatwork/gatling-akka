@@ -14,13 +14,12 @@ trait AkkaCheckSupport {
     }
   })
 
-  def expectMsgPF(pf: PartialFunction[Any, Validation[CheckResult]]) = AkkaCheck(new Check[Response] {
+  def expectMsgPF[T](pf: PartialFunction[Any, T]) = AkkaCheck(new Check[Response] {
     override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
-      if (pf.isDefinedAt(response.message)) {
-        pf(response.message)
-      } else {
-        Failure(s"${response.message} is not expected.")
-      }
+      if (pf.isDefinedAt(response))
+        CheckResult(Some(pf(response.message)), None).success
+      else
+        Failure(s"Unexpected message: ${response.message}.")
     }
   })
 }

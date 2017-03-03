@@ -3,10 +3,8 @@ package com.chatwork.gatling.akka
 import akka.actor.{ Actor, ActorSystem, Props }
 import com.typesafe.config.ConfigFactory
 import io.gatling.core.Predef._
-import io.gatling.core.check.CheckResult
 
 import scala.concurrent.duration._
-import io.gatling.commons.validation._
 
 class BasicSimulation extends Simulation {
 
@@ -25,7 +23,7 @@ class BasicSimulation extends Simulation {
   val s = scenario("ping-pong-ping-pong")
     .exec(akka("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
     .exec(akka("ping-2").to(ponger) ? PingerPonger.Ping check expectMsgPF {
-      case PingerPonger.Pong => CheckResult(Some(PingerPonger.Pong), None).success
+      case PingerPonger.Pong => PingerPonger.Pong
     })
 
   setUp(
