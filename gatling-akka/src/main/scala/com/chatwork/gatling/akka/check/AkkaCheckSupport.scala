@@ -10,7 +10,7 @@ import io.gatling.commons.validation._
 trait AkkaCheckSupport {
   def expectMsg(message: Any) = AkkaCheck(new Check[Response] {
     override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
-      if (message == response.message) CheckResult(Some(response), None).success else Failure(s"${response.message} expected but got $message.")
+      if (message == response.message) CheckResult(Some(response), None).success else Failure(s"$message expected but got ${response.message}.")
     }
   })
 
