@@ -8,15 +8,15 @@ import scala.collection.mutable
 import io.gatling.commons.validation._
 
 trait AkkaCheckSupport {
-  def expectMsg(message: Any) = AkkaCheck(new Check[Response] {
+  def expectMsg(message: Any): AkkaCheck = AkkaCheck(new Check[Response] {
     override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
       if (message == response.message) CheckResult(Some(response), None).success else Failure(s"$message expected but got ${response.message}.")
     }
   })
 
-  def expectMsgPF[T](pf: PartialFunction[Any, T]) = AkkaCheck(new Check[Response] {
+  def expectMsgPF[T](pf: PartialFunction[Any, T]): AkkaCheck = AkkaCheck(new Check[Response] {
     override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = {
-      if (pf.isDefinedAt(response))
+      if (pf.isDefinedAt(response.message))
         CheckResult(Some(pf(response.message)), None).success
       else
         Failure(s"Unexpected message: ${response.message}.")
