@@ -13,7 +13,7 @@ class BasicSimulation extends Simulation {
   val config = ConfigFactory.load()
   implicit val system = ActorSystem("BasicSimulation", config)
 
-  val akkaConfig = akka.askTimeout(3 seconds)
+  val akkaConfig = akkaActor.askTimeout(3 seconds)
   val ponger = system.actorOf(PingerPonger.ponger)
   val receivePong: Any => Boolean = {
     case PingerPonger.Pong => true
@@ -21,8 +21,8 @@ class BasicSimulation extends Simulation {
   }
 
   val s = scenario("ping-pong-ping-pong")
-    .exec(akka("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
-    .exec(akka("ping-2").to(ponger) ? PingerPonger.Ping check expectMsgPF {
+    .exec(akkaActor("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
+    .exec(akkaActor("ping-2").to(ponger) ? PingerPonger.Ping check expectMsgPF {
       case PingerPonger.Pong => PingerPonger.Pong
     })
 
