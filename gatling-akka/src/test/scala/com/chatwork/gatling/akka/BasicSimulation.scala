@@ -20,11 +20,13 @@ class BasicSimulation extends Simulation {
     case _                 => false
   }
 
+  val pf: PartialFunction[Any, Unit] = {
+    case PingerPonger.Pong => ()
+  }
+
   val s = scenario("ping-pong-ping-pong")
     .exec(akkaActor("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong))
-    .exec(akkaActor("ping-2").to(ponger) ? PingerPonger.Ping check expectMsgPF {
-      case PingerPonger.Pong => PingerPonger.Pong
-    })
+    .exec((akkaActor("ping-2").to(ponger) ? PingerPonger.Ping).check(expectMsgPF(pf)))
 
   setUp(
     s.inject(constantUsersPerSec(10) during (10 seconds))
