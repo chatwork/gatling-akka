@@ -1,5 +1,6 @@
 package com.chatwork.gatling.akka.check
 
+import akka.actor.ActorRef
 import com.chatwork.gatling.akka.response.Response
 import io.gatling.commons.validation.Success
 import io.gatling.core.CoreDsl
@@ -19,7 +20,7 @@ class AkkaCheckSpec extends WordSpecLike with Matchers with MockitoSugar with Co
   val session = Session("mockSession", 0)
 
   private def mockResponse(message: Any): Response = {
-    Response(message)
+    Response(message, ActorRef.noSender)
   }
 
   "AkkaCheck" must {
