@@ -21,7 +21,7 @@ class BasicSimulation extends Simulation {
   // scenario definition
   val s = scenario("ping-pong-ping-pong")
     .exec {
-      // ask a request to ponger actor and check its response with expectMsg and then save it in session
+      // ask a request to ponger actor and check its response with expectMsg and then save it in session if the check passes
       akkaActor("ping-1").to(ponger) ? PingerPonger.Ping check expectMsg(PingerPonger.Pong).saveAs("pong")
     }
     .exec {
@@ -35,6 +35,14 @@ class BasicSimulation extends Simulation {
           case PingerPonger.Pong => PingerPonger.Ping
         }
       }.check(expectMsgPF(pf)) // check a response with partial function with expectMsgPF
+    }
+    .exec {
+      // message content check, same as expectMsg
+      akkaActor("ping-3").to(ponger) ? PingerPonger.Ping check message.is(PingerPonger.Pong)
+    }
+    .exec {
+      // find recipient and save it in session
+      akkaActor("ping-4").to(ponger) ? PingerPonger.Ping check recipient.find.exists.saveAs("recipient")
     }
 
   // inject configurations
