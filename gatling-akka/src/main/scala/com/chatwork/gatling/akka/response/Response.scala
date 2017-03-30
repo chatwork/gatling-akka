@@ -1,3 +1,5 @@
 package com.chatwork.gatling.akka.response
 
-case class Response(message: Any)
+import akka.actor.ActorRef
+
+case class Response(message: Any, recipient: ActorRef)
