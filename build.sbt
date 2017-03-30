@@ -15,11 +15,13 @@ lazy val gatling_akka = (project in file("gatling-akka")).
     libraryDependencies ++= Seq(
       akka.actor,
       akka.remote,
-      akka.testkit,
+      akka.testkit % Test,
       gatling.core % Provided,
       gatling.testFramework % Test,
       gatling.highcharts % Test,
-      scalaTest % Test
+      scalaTest % Test,
+      mockito % Test,
+      jsr305 % Test
     ),
     executeTests in Test <<= (executeTests in Test, executeTests in Gatling) map {
       case (testResults, gatlingResults)  =>

@@ -25,4 +25,8 @@ object Dependencies {
 
     private def apply(m: String, v: String = version, experimental: Boolean = false) = "com.typesafe.akka" %% s"akka-$m${if (experimental) experimentalSuffix else ""}" % v
   }
+
+  val mockito = "org.mockito" % "mockito-core" % "2.3.11"
+
+  val jsr305 = "com.google.code.findbugs" % "jsr305" % "2.0.3" // To avoid compile failure caused by fatal warning
 }
