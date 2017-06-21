@@ -14,7 +14,7 @@ For sbt users, addd following lines to build.sbt.
 libraryDependencies ++= Seq(
   "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.3",
   "io.gatling" % "gatling-test-framework" % "2.2.3",
-  "com.chatwork" %% "gatling-akka" % "0.1.2"
+  "com.chatwork" %% "gatling-akka" % "0.1.4"
 )
 ```
 
