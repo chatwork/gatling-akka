@@ -19,3 +19,5 @@ native
 *.deb
 .terraform/
 node_modules/
+
+.credentials

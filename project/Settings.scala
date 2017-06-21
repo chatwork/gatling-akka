@@ -1,13 +1,9 @@
-import com.amazonaws.services.s3.model.{CannedAccessControlList, Region}
-import com.chatwork.sbt.aws.core.SbtAwsCorePlugin.autoImport._
-import com.chatwork.sbt.aws.s3.SbtAwsS3Keys.{s3Acl => _, s3Region => _}
-import com.chatwork.sbt.aws.s3.SbtAwsS3Plugin.autoImport._
-import com.chatwork.sbt.aws.s3.resolver.SbtAwsS3ResolverPlugin.autoImport._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import org.scalastyle.sbt.ScalastylePlugin._
 import sbt.Keys._
 import sbt._
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 import scalariform.formatter.preferences._
 
@@ -29,7 +25,14 @@ object Settings {
     .setPreference(DoubleIndentClassDeclaration, true)
     .setPreference(AlignArguments, true)
 
+
+  lazy val noPublishSettings = Seq(
+    publish := (),
+    publishArtifact in Compile := false
+  )
+
   val mavenSettings = Seq(
+    sonatypeProfileName := "com.chatwork",
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := {
@@ -39,8 +42,8 @@ object Settings {
       <url>https://github.com/chatwork/gatling-akka</url>
         <licenses>
           <license>
-            <name>ChatWork License</name>
-            <url>http://www.chatwork.com/</url>
+            <name>The MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
           </license>
         </licenses>
         <scm>
@@ -59,21 +62,16 @@ object Settings {
           </developer>
         </developers>
     },
-    credentialProfileName in aws := scala.util.Properties.propOrNone("aws.profile"),
-    s3Region in aws := Region.AP_Tokyo,
-    s3Acl in aws := CannedAccessControlList.Private,
-    publishTo := {
-      val base = s"s3://${sys.env.getOrElse("GATLING_AKKA_PUBLISH_BUCKET_NAME", "")}"
-      if (isSnapshot.value)
-        Some((s3Resolver in aws).value("ChatWork's Maven Snapshot Repository", base + "/snapshots"))
-      else
-        Some((s3Resolver in aws).value("ChatWork's Maven Release Repository", base + "/releases"))
+    credentials := {
+      val ivyCredentials = (baseDirectory in LocalRootProject).value / ".credentials"
+      val result = Credentials(ivyCredentials) :: Nil
+      result
     }
   )
 
   val coreSettings = Seq(
     organization := "com.chatwork", 
-    scalaVersion := "2.11.8", 
+    scalaVersion := "2.11.8",
     scalacOptions ++= Seq(
       "-feature", 
       "-deprecation", 

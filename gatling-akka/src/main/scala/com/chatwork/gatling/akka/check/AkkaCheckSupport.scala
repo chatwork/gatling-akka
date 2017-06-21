@@ -1,7 +1,8 @@
 package com.chatwork.gatling.akka.check
 
+import akka.actor.ActorRef
 import com.chatwork.gatling.akka.response.Response
-import io.gatling.core.check._
+import io.gatling.core.check.{ DefaultFindCheckBuilder, _ }
 import io.gatling.commons.validation._
 import io.gatling.core.check.extractor._
 import io.gatling.core.session.{ Expression, Session }
@@ -17,10 +18,27 @@ private[akka] trait AkkaCheckSupport {
     def apply(prepared: Response) = Some(prepared.message).success
   }.success
 
+  private def recipientExtractor(session: Session): Validation[Extractor[Response, ActorRef]] = new Extractor[Response, ActorRef] with SingleArity {
+    val name = "recipient"
+    def apply(prepared: Response) = Some(prepared.recipient).success
+  }.success
+
   private val validatorCheckBuilder: ValidatorCheckBuilder[AkkaCheck, Response, Response, Any] = ValidatorCheckBuilder(
     responseExtender,
     passThroughResponsePreparer,
     messageExtractor
+  )
+
+  val message = new DefaultFindCheckBuilder[AkkaCheck, Response, Response, Any](
+    responseExtender,
+    passThroughResponsePreparer,
+    messageExtractor
+  )
+
+  val recipient = new DefaultFindCheckBuilder[AkkaCheck, Response, Response, ActorRef](
+    responseExtender,
+    passThroughResponsePreparer,
+    recipientExtractor
   )
 
   def expectMsg(message: Expression[Any]) = validatorCheckBuilder.validate(message.map(m => new ExpectMsgValidator(m)))
