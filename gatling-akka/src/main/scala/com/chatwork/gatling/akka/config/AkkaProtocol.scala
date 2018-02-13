@@ -15,14 +15,17 @@ case class AkkaProtocol(askTimeout: FiniteDuration = 10 seconds) extends Protoco
 object AkkaProtocol {
 
   val protocolKey = new ProtocolKey {
-    override type Protocol = AkkaProtocol
+    override type Protocol   = AkkaProtocol
     override type Components = AkkaProtocolComponents
 
-    override def protocolClass: Class[io.gatling.core.protocol.Protocol] = classOf[AkkaProtocol].asInstanceOf[Class[io.gatling.core.protocol.Protocol]]
+    override def protocolClass: Class[io.gatling.core.protocol.Protocol] =
+      classOf[AkkaProtocol].asInstanceOf[Class[io.gatling.core.protocol.Protocol]]
 
     override def defaultProtocolValue(configuration: GatlingConfiguration): AkkaProtocol = AkkaProtocol()
 
-    override def newComponents(system: ActorSystem, coreComponents: CoreComponents): AkkaProtocol => AkkaProtocolComponents = protocol => AkkaProtocolComponents(protocol)
+    override def newComponents(system: ActorSystem,
+                               coreComponents: CoreComponents): AkkaProtocol => AkkaProtocolComponents =
+      protocol => AkkaProtocolComponents(protocol)
   }
 }
 

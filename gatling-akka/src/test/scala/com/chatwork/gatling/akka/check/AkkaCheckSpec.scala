@@ -17,7 +17,7 @@ class AkkaCheckSpec extends WordSpecLike with Matchers with MockitoSugar with Co
   implicit val configuration = GatlingConfiguration.loadForTest()
 
   implicit def cache: mutable.Map[Any, Any] = mutable.Map.empty
-  val session = Session("mockSession", 0)
+  val session                               = Session("mockSession", 0)
 
   private def mockResponse(message: Any): Response = {
     Response(message, ActorRef.noSender)

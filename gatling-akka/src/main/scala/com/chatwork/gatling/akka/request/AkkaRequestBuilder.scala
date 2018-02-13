@@ -20,15 +20,19 @@ class AkkaRequestBuilder(requestName: Expression[String]) {
 }
 
 case class AskRequestBuilder(askAttributes: AskRequestAttributes) {
-  def to(recipient: Expression[ActorRef]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(recipient = recipient))
+  def to(recipient: Expression[ActorRef]): AskRequestBuilder =
+    copy(askAttributes = askAttributes.copy(recipient = recipient))
 
-  def withSender(sender: Expression[ActorRef]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(sender = sender))
+  def withSender(sender: Expression[ActorRef]): AskRequestBuilder =
+    copy(askAttributes = askAttributes.copy(sender = sender))
 
-  def ask(message: Expression[Any]): AskRequestBuilder = copy(askAttributes = askAttributes.copy(message = Some(message)))
+  def ask(message: Expression[Any]): AskRequestBuilder =
+    copy(askAttributes = askAttributes.copy(message = Some(message)))
 
   def ?(message: Expression[Any]): AskRequestBuilder = ask(message)
 
-  def check(checks: AkkaCheck*): AskRequestBuilder = copy(askAttributes = askAttributes.copy(checks = askAttributes.checks ::: checks.toList))
+  def check(checks: AkkaCheck*): AskRequestBuilder =
+    copy(askAttributes = askAttributes.copy(checks = askAttributes.checks ::: checks.toList))
 }
 
 object AskRequestBuilder {
@@ -41,11 +45,11 @@ sealed trait AkkaRequestAttributes {
 }
 
 case class AskRequestAttributes(
-  requestName: Expression[String],
-  recipient:   Expression[ActorRef],
-  sender:      Expression[ActorRef]    = AskRequestAttributes.noSender,
-  message:     Option[Expression[Any]] = None,
-  checks:      List[AkkaCheck]         = Nil
+    requestName: Expression[String],
+    recipient: Expression[ActorRef],
+    sender: Expression[ActorRef] = AskRequestAttributes.noSender,
+    message: Option[Expression[Any]] = None,
+    checks: List[AkkaCheck] = Nil
 ) extends AkkaRequestAttributes
 
 object AskRequestAttributes {
