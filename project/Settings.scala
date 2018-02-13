@@ -1,30 +1,34 @@
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-import org.scalastyle.sbt.ScalastylePlugin._
 import sbt.Keys._
 import sbt._
+import org.scalastyle.sbt.ScalastylePlugin.autoImport._
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
-import scalariform.formatter.preferences._
-
 object Settings {
+
+  implicit class SbtLoggerOps(val self: sbt.Logger) extends AnyVal {
+    def toScalaProcessLogger: scala.sys.process.ProcessLogger = new scala.sys.process.ProcessLogger {
+      private val _log = new FullLogger(self)
+      override def out(s: => String): Unit = _log.info(s)
+
+      override def err(s: => String): Unit = _log.error(s)
+
+      override def buffer[T](f: => T): T = _log.buffer(f)
+    }
+  }
 
   val compileScalaStyle = taskKey[Unit]("compileScalaStyle")
 
   lazy val scalaStyleSettings = Seq(
     (scalastyleConfig in Compile) := file("scalastyle-config.xml")
     , compileScalaStyle := scalastyle.in(Compile).toTask("").value
-    , (compile in Compile) <<= (compile in Compile) dependsOn compileScalaStyle
+    , (compile in Compile) := (compile in Compile).dependsOn(compileScalaStyle).value
   )
 
-  val formatPreferences = FormattingPreferences()
-    .setPreference(RewriteArrowSymbols, false)
-    .setPreference(AlignParameters, true)
-    .setPreference(AlignSingleLineCaseStatements, true)
-    .setPreference(SpacesAroundMultiImports, true)
-    .setPreference(DoubleIndentClassDeclaration, true)
-    .setPreference(AlignArguments, true)
-
+  lazy val scalaFmtSettings = Seq(
+    scalafmtOnCompile in Compile := true
+    , scalafmtTestOnCompile in Compile := true
+  )
 
   lazy val noPublishSettings = Seq(
     publish := (),
@@ -95,8 +99,5 @@ object Settings {
       "-Ywarn-unused-import" // Warn when imports are unused.
     )
     , autoAPIMappings := true
-  ) ++ scalaStyleSettings ++ SbtScalariform.scalariformSettings ++ Seq(
-    ScalariformKeys.preferences in Compile := formatPreferences,
-    ScalariformKeys.preferences in Test := formatPreferences
-  ) ++ mavenSettings
+  ) ++ scalaStyleSettings ++ scalaFmtSettings ++ mavenSettings
 }
