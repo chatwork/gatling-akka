@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
 ## Example
 
 ```scala
-import io.gatling.core.Predef._
+import _root_.io.gatling.core.Predef._
 import com.chatwork.gatling.akka.Predef._
 
 class BasicSimulation extends Simulation {
