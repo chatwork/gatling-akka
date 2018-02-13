@@ -5,7 +5,6 @@ gatling-akka is [gatling](https://github.com/gatling/gatling) plugin for stress 
 
 gatling-akka enables to simulate message passing between actors and measure latency and throughput of the requests and responses.
 
-
 ## Installation
 
 For sbt users, addd following lines to build.sbt.
@@ -17,7 +16,6 @@ libraryDependencies ++= Seq(
   "com.chatwork" %% "gatling-akka" % "0.1.4"
 )
 ```
-
 
 ## Example
 
