@@ -1,5 +1,6 @@
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 import sbtrelease._
+import Settings._
 
 def updateReadmeFile(version: String, readme: String): Unit = {
   val readmeFile = file(readme)
@@ -26,10 +27,10 @@ val updateReadme: (State) => State = { state: State =>
   )
   readmeFiles.foreach(readme => updateReadmeFile(v, readme))
   readmeFiles.foreach { readme =>
-    git.add(readme) ! state.log
-    git.commit("update " + readme, true) ! state.log
+    git.add(readme) ! state.log.toScalaProcessLogger
+    git.commit("update " + readme, true) ! state.log.toScalaProcessLogger
   }
-  "git diff HEAD^" ! state.log
+  git.cmd("diff", "HEAD^") ! state.log.toScalaProcessLogger
   state
 }
 

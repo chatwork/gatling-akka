@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 class BasicSimulation extends Simulation {
 
-  val config = ConfigFactory.load()
+  val config          = ConfigFactory.load()
   implicit val system = ActorSystem("BasicSimulation", config)
 
   // gatling-akka protocol configuration
@@ -29,12 +29,15 @@ class BasicSimulation extends Simulation {
         case PingerPonger.Pong =>
       }
 
-      akkaActor("ping-2").to(ponger).ask { session =>
-        // ask based on session value
-        session("pong").as[PingerPonger.Pong.type] match {
-          case PingerPonger.Pong => PingerPonger.Ping
+      akkaActor("ping-2")
+        .to(ponger)
+        .ask { session =>
+          // ask based on session value
+          session("pong").as[PingerPonger.Pong.type] match {
+            case PingerPonger.Pong => PingerPonger.Ping
+          }
         }
-      }.check(expectMsgPF(pf)) // check a response with partial function with expectMsgPF
+        .check(expectMsgPF(pf)) // check a response with partial function with expectMsgPF
     }
     .exec {
       // message content check, same as expectMsg

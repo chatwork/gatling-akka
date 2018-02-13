@@ -18,19 +18,19 @@ import io.gatling.core.util.NameGen
 import scala.util.{ Failure, Success }
 
 case class AskAction(
-    attr:           AskRequestAttributes,
+    attr: AskRequestAttributes,
     coreComponents: CoreComponents,
-    protocol:       AkkaProtocol,
-    system:         ActorSystem,
-    next:           Action
-) extends ExitableAction with NameGen {
+    protocol: AkkaProtocol,
+    system: ActorSystem,
+    next: Action
+) extends ExitableAction
+    with NameGen {
 
   override def name: String = genName("akkaAsk")
 
   override def execute(session: Session): Unit = recover(session) {
     configureAttr(session).map {
       case (requestName, sender, recipient, message) =>
-
         def writeData(session: Session, status: Status, _startTimeStamp: Long, logMessage: Option[String]) = {
           val requestEndTime = nowMillis
           statsEngine.logResponse(
@@ -65,13 +65,15 @@ case class AskAction(
   private def configureAttr(session: Session): Validation[(String, ActorRef, ActorRef, Any)] = {
     val messageExpr: Expression[Any] = attr.message match {
       case Some(expr) => expr
-      case None       => (s: Session) => io.gatling.commons.validation.Failure("Message to send to an actor is required.")
+      case None =>
+        (s: Session) =>
+          io.gatling.commons.validation.Failure("Message to send to an actor is required.")
     }
     for {
       requestName <- attr.requestName(session)
-      sender <- attr.sender(session)
-      recipient <- attr.recipient(session)
-      message <- messageExpr(session)
+      sender      <- attr.sender(session)
+      recipient   <- attr.recipient(session)
+      message     <- messageExpr(session)
     } yield (requestName, sender, recipient, message)
   }
 }

@@ -7,6 +7,7 @@ import io.gatling.core.check.{ Check, CheckResult }
 import scala.collection.mutable
 
 case class AkkaCheck(wrapped: Check[Response]) extends Check[Response] {
-  override def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] =
+  override def check(response: Response,
+                     session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] =
     wrapped.check(response, session)
 }

@@ -13,15 +13,17 @@ private[akka] trait AkkaCheckSupport {
 
   private val passThroughResponsePreparer: Preparer[Response, Response] = (r: Response) => r.success
 
-  private def messageExtractor(session: Session): Validation[Extractor[Response, Any]] = new Extractor[Response, Any] with SingleArity {
-    val name = "message"
-    def apply(prepared: Response) = Some(prepared.message).success
-  }.success
+  private def messageExtractor(session: Session): Validation[Extractor[Response, Any]] =
+    new Extractor[Response, Any] with SingleArity {
+      val name                      = "message"
+      def apply(prepared: Response) = Some(prepared.message).success
+    }.success
 
-  private def recipientExtractor(session: Session): Validation[Extractor[Response, ActorRef]] = new Extractor[Response, ActorRef] with SingleArity {
-    val name = "recipient"
-    def apply(prepared: Response) = Some(prepared.recipient).success
-  }.success
+  private def recipientExtractor(session: Session): Validation[Extractor[Response, ActorRef]] =
+    new Extractor[Response, ActorRef] with SingleArity {
+      val name                      = "recipient"
+      def apply(prepared: Response) = Some(prepared.recipient).success
+    }.success
 
   private val validatorCheckBuilder: ValidatorCheckBuilder[AkkaCheck, Response, Response, Any] = ValidatorCheckBuilder(
     responseExtender,
