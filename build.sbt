@@ -12,17 +12,31 @@ lazy val gatling_akka = (project in file("gatling-akka")).
   settings(coreSettings).
   settings(
     name := "gatling-akka"
-    , libraryDependencies ++= Seq(
-      akka.actor
-      , akka.remote
-      , akka.testkit % Test
-      , gatling.core % Provided
-      , gatling.testFramework % Test
-      , gatling.highcharts % Test
-      , scalaTest % Test
-      , mockito % Test
-      , jsr305 % Test
-    )
+    , libraryDependencies ++= {
+      Seq(
+        akka.actor
+        , akka.remote
+        , akka.testkit % Test
+        , scalaTest % Test
+        , mockito % Test
+        , jsr305 % Test
+      ) ++ {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2L, scalaMajor)) if scalaMajor == 12 =>
+            Seq(
+              gatling.coreOfScala212
+              , gatling.testFrameworkOfScala212
+              , gatling.highchartsOfScala212
+            )
+          case Some((2L, scalaMajor)) if scalaMajor <= 11 =>
+            Seq(
+              gatling.coreOfScala211
+              , gatling.testFrameworkOfScala211
+              , gatling.highchartsOfScala211
+            )
+        }
+      }
+    }
     , executeTests in Test := Def.task {
       val testResults = (executeTests in Test).value
       val gatlingResults = (executeTests in Gatling).value

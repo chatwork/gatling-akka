@@ -5,17 +5,22 @@ object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
 
   object gatling {
-    val version = "2.2.3"
+    val versionOfScala211 = "2.2.5"
+    val versionOfScala212 = "2.3.0"
 
-    val core = gatling("core")
-    val testFramework = gatling("test-framework")
-    val highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % version
+    val coreOfScala211 = gatling("core", versionOfScala211)
+    val testFrameworkOfScala211 = gatling("test-framework", versionOfScala211)
+    val highchartsOfScala211 = "io.gatling.highcharts" % "gatling-charts-highcharts" % versionOfScala211
 
-    private def apply(m: String, v: String = version) = "io.gatling" % s"gatling-$m" % v
+    val coreOfScala212 = gatling("core", versionOfScala212)
+    val testFrameworkOfScala212 = gatling("test-framework", versionOfScala212)
+    val highchartsOfScala212 = "io.gatling.highcharts" % "gatling-charts-highcharts" % versionOfScala212
+
+    private def apply(m: String, v: String) = "io.gatling" % s"gatling-$m" % v
   }
 
   object akka {
-    val version = "2.4.17"
+    val version = "2.5.9"
 
     val actor = akka("actor")
     val remote = akka("remote")
