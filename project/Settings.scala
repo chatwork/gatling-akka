@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 import org.scalastyle.sbt.ScalastylePlugin.autoImport._
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
+import xerial.sbt.Sonatype.autoImport._
 
 object Settings {
 
@@ -34,6 +34,10 @@ object Settings {
   lazy val noPublishSettings = Seq(
     publish := Def.setting(()),
     publishArtifact in Compile := false
+  )
+
+  lazy val publishSettings = Seq(
+    publishTo := sonatypePublishTo.value
   )
 
   val mavenSettings = Seq(
