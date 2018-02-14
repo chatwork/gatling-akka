@@ -9,10 +9,22 @@ gatling-akka enables to simulate message passing between actors and measure late
 
 For sbt users, addd following lines to build.sbt.
 
+### Scala 2.11
+
 ```
 libraryDependencies ++= Seq(
-  "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.3",
-  "io.gatling" % "gatling-test-framework" % "2.2.3",
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.5",
+  "io.gatling" % "gatling-test-framework" % "2.2.5",
+  "com.chatwork" %% "gatling-akka" % "0.1.4"
+)
+```
+
+### Scala 2.12
+
+```
+libraryDependencies ++= Seq(
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.3.0",
+  "io.gatling" % "gatling-test-framework" % "2.3.0",
   "com.chatwork" %% "gatling-akka" % "0.1.4"
 )
 ```
