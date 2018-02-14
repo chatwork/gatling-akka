@@ -32,8 +32,8 @@ object Settings {
   )
 
   lazy val noPublishSettings = Seq(
-    publish := Def.setting(()),
-    publishArtifact in Compile := false
+    publish := Def.setting(())
+    //publishArtifact in Compile := false
   )
 
   lazy val publishSettings = Seq(
