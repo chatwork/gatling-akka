@@ -11,7 +11,7 @@ For sbt users, addd following lines to build.sbt.
 
 ### Scala 2.11
 
-```
+```scala
 libraryDependencies ++= Seq(
   "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.5",
   "io.gatling" % "gatling-test-framework" % "2.2.5",
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 
 ### Scala 2.12
 
-```
+```scala
 libraryDependencies ++= Seq(
   "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.3.0",
   "io.gatling" % "gatling-test-framework" % "2.3.0",
