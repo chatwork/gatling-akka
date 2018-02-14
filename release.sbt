@@ -40,7 +40,7 @@ val updateReadmeProcess = ReleaseStep(updateReadme)
 
 releaseCrossBuild := true
 
-releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
