@@ -9,7 +9,7 @@ lazy val root = (project in file(".")).
 
 lazy val gatling_akka = (project in file("gatling-akka")).
   enablePlugins(GatlingPlugin).
-  settings(coreSettings).
+  settings(coreSettings ++ publishSettings).
   settings(
     name := "gatling-akka"
     , libraryDependencies ++= {
