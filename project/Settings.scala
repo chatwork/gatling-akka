@@ -36,12 +36,9 @@ object Settings {
     //publishArtifact in Compile := false
   )
 
-  lazy val publishSettings = Seq(
-    publishTo := sonatypePublishTo.value
-  )
-
   val mavenSettings = Seq(
     sonatypeProfileName := "com.chatwork",
+    publishTo := sonatypePublishTo.value,
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := {

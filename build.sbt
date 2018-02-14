@@ -3,13 +3,13 @@ import Settings._
 import _root_.io.gatling.sbt.GatlingPlugin
 
 lazy val root = (project in file(".")).
-  settings(coreSettings ++ noPublishSettings).
+  settings(coreSettings).
   settings(name := "gatling-akka-root").
   aggregate(gatling_akka)
 
 lazy val gatling_akka = (project in file("gatling-akka")).
   enablePlugins(GatlingPlugin).
-  settings(coreSettings ++ publishSettings).
+  settings(coreSettings).
   settings(
     name := "gatling-akka"
     , libraryDependencies ++= {
