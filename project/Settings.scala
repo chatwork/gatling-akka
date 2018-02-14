@@ -32,8 +32,7 @@ object Settings {
   )
 
   lazy val noPublishSettings = Seq(
-    publish := Def.setting(())
-    //publishArtifact in Compile := false
+    skip in publish := true
   )
 
   val mavenSettings = Seq(
