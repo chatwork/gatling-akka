@@ -1,19 +1,18 @@
 package com.chatwork.gatling.akka.action
 
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.ActorRef
 import akka.pattern.ask
 import com.chatwork.gatling.akka.config.AkkaProtocol
 import com.chatwork.gatling.akka.request.AskRequestAttributes
 import com.chatwork.gatling.akka.response.Response
 import io.gatling.commons.stats.{ KO, OK, Status }
-import io.gatling.commons.util.ClockSingleton._
+import io.gatling.commons.util.Clock
 import io.gatling.commons.validation.Validation
 import io.gatling.core.CoreComponents
 import io.gatling.core.action.{ Action, ExitableAction }
 import io.gatling.core.check.Check
 import io.gatling.core.session.{ Expression, Session }
 import io.gatling.core.stats.StatsEngine
-import io.gatling.core.stats.message.ResponseTimings
 import io.gatling.core.util.NameGen
 import scala.util.{ Failure, Success }
 
@@ -21,10 +20,11 @@ case class AskAction(
     attr: AskRequestAttributes,
     coreComponents: CoreComponents,
     protocol: AkkaProtocol,
-    system: ActorSystem,
     next: Action
 ) extends ExitableAction
     with NameGen {
+
+  private val system = coreComponents.actorSystem
 
   override def name: String = genName("akkaAsk")
 
@@ -32,11 +32,12 @@ case class AskAction(
     configureAttr(session).map {
       case (requestName, sender, recipient, message) =>
         def writeData(session: Session, status: Status, _startTimeStamp: Long, logMessage: Option[String]) = {
-          val requestEndTime = nowMillis
+          val requestEndTime = clock.nowMillis
           statsEngine.logResponse(
             session,
             requestName,
-            ResponseTimings(startTimestamp = _startTimeStamp, endTimestamp = requestEndTime),
+            _startTimeStamp,
+            requestEndTime,
             status,
             None,
             logMessage
@@ -44,16 +45,16 @@ case class AskAction(
           next ! session
         }
 
-        val requestTimestamp = nowMillis
+        val requestTimestamp = clock.nowMillis
         import system.dispatcher
         recipient.ask(message)(protocol.askTimeout, sender).onComplete {
           case Success(msg) =>
-            val (checkSaveUpdate, checkError) = Check.check(Response(msg, recipient), session, attr.checks)
+            val (sessionWithCheckUpdate, checkError) = Check.check(Response(msg, recipient), session, attr.checks)
             val status = checkError match {
               case None => OK
               case _    => KO
             }
-            writeData(checkSaveUpdate(session), status, requestTimestamp, checkError.map(_.message))
+            writeData(sessionWithCheckUpdate, status, requestTimestamp, checkError.map(_.message))
           case Failure(th) =>
             writeData(session, KO, requestTimestamp, Some(th.getMessage))
         }
@@ -61,6 +62,8 @@ case class AskAction(
   }
 
   override def statsEngine: StatsEngine = coreComponents.statsEngine
+
+  override def clock: Clock = coreComponents.clock
 
   private def configureAttr(session: Session): Validation[(String, ActorRef, ActorRef, Any)] = {
     val messageExpr: Expression[Any] = attr.message match {

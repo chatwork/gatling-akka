@@ -6,7 +6,7 @@ object Dependencies {
 
   object gatling {
     val versionOfScala211 = "2.2.5"
-    val versionOfScala212 = "2.3.0"
+    val versionOfScala212 = "3.1.3"
 
     val coreOfScala211 = gatling("core", versionOfScala211)
     val testFrameworkOfScala211 = gatling("test-framework", versionOfScala211)
