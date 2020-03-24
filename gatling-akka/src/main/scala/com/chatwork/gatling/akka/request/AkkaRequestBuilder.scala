@@ -60,6 +60,6 @@ case class AskActionBuilder(requestBuilder: AskRequestBuilder) extends ActionBui
   override def build(ctx: ScenarioContext, next: Action): Action = {
     import ctx._
     val akkaComponents: AkkaProtocolComponents = protocolComponentsRegistry.components(AkkaProtocol.protocolKey)
-    AskAction(requestBuilder.askAttributes, coreComponents, akkaComponents.protocol, system, next)
+    AskAction(requestBuilder.askAttributes, coreComponents, akkaComponents.protocol, next)
   }
 }

@@ -1,7 +1,10 @@
 package com.chatwork.gatling.akka.check
 
+import java.util.{ HashMap => JHashMap, Map => JMap }
+
 import akka.actor.ActorRef
 import com.chatwork.gatling.akka.response.Response
+import io.gatling.commons.util.DefaultClock
 import io.gatling.commons.validation.Success
 import io.gatling.core.CoreDsl
 import io.gatling.core.check.CheckResult
@@ -10,14 +13,12 @@ import io.gatling.core.session.Session
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, WordSpecLike }
 
-import scala.collection.mutable
-
 class AkkaCheckSpec extends WordSpecLike with Matchers with MockitoSugar with CoreDsl with AkkaCheckSupport {
 
   implicit val configuration = GatlingConfiguration.loadForTest()
 
-  implicit def cache: mutable.Map[Any, Any] = mutable.Map.empty
-  val session                               = Session("mockSession", 0)
+  implicit def preparedCache: JMap[Any, Any] = new JHashMap
+  val session                                = Session("mockSession", 0, new DefaultClock().nowMillis)
 
   private def mockResponse(message: Any): Response = {
     Response(message, ActorRef.noSender)

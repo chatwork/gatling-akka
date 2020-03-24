@@ -7,11 +7,22 @@ import io.gatling.commons.validation._
 import io.gatling.core.check.extractor._
 import io.gatling.core.session.{ Expression, Session }
 
+import scala.annotation.implicitNotFound
+
 private[akka] trait AkkaCheckSupport {
+  private object AkkaCheckMaterializer extends CheckMaterializer[AkkaCheck, AkkaCheck, Response, Response] {
+    override val specializer: Specializer[AkkaCheck, Response] = (wrapped: Check[Response]) => AkkaCheck(wrapped)
+    override val preparer: Preparer[Response, Response]        = (r: Response) => r.success
+  }
 
-  private val responseExtender: Extender[AkkaCheck, Response] = (wrapped: Check[Response]) => AkkaCheck(wrapped)
+  implicit val akkaCheckMaterializer: CheckMaterializer[AkkaCheck, AkkaCheck, Response, Response] =
+    AkkaCheckMaterializer
 
-  private val passThroughResponsePreparer: Preparer[Response, Response] = (r: Response) => r.success
+  @implicitNotFound("Could not find a CheckMaterializer. This check might not be valid for Akka.")
+  implicit def checkBuilder2AkkaCheck[A, P, X](
+      checkBuilder: CheckBuilder[A, P, X]
+  )(implicit materializer: CheckMaterializer[A, AkkaCheck, Response, P]): AkkaCheck =
+    checkBuilder.build(materializer)
 
   private def messageExtractor(session: Session): Validation[Extractor[Response, Any]] =
     new Extractor[Response, Any] with SingleArity {
@@ -25,22 +36,19 @@ private[akka] trait AkkaCheckSupport {
       def apply(prepared: Response) = Some(prepared.recipient).success
     }.success
 
-  private val validatorCheckBuilder: ValidatorCheckBuilder[AkkaCheck, Response, Response, Any] = ValidatorCheckBuilder(
-    responseExtender,
-    passThroughResponsePreparer,
-    messageExtractor
+  private val validatorCheckBuilder: ValidatorCheckBuilder[AkkaCheck, Response, Any] = ValidatorCheckBuilder(
+    messageExtractor,
+    displayActualValue = true
   )
 
-  val message = new DefaultFindCheckBuilder[AkkaCheck, Response, Response, Any](
-    responseExtender,
-    passThroughResponsePreparer,
-    messageExtractor
+  val message = new DefaultFindCheckBuilder[AkkaCheck, Response, Any](
+    messageExtractor,
+    displayActualValue = true
   )
 
-  val recipient = new DefaultFindCheckBuilder[AkkaCheck, Response, Response, ActorRef](
-    responseExtender,
-    passThroughResponsePreparer,
-    recipientExtractor
+  val recipient = new DefaultFindCheckBuilder[AkkaCheck, Response, ActorRef](
+    recipientExtractor,
+    displayActualValue = true
   )
 
   def expectMsg(message: Expression[Any]) = validatorCheckBuilder.validate(message.map(m => new ExpectMsgValidator(m)))
@@ -53,20 +61,29 @@ private[akka] trait AkkaCheckSupport {
 private[check] class ExpectMsgValidator(expected: Any) extends Validator[Any] {
   override def name: String = s"expectMsg($expected)"
 
-  override def apply(actual: Option[Any]): Validation[Option[Any]] = {
-    if (actual.contains(expected)) actual.success else Failure(s"$expected expected but got ${actual.getOrElse("")}.")
+  override def apply(actual: Option[Any], displayActualValue: Boolean): Validation[Option[Any]] = {
+    if (actual.contains(expected)) actual.success
+    else
+      Failure(
+        if (displayActualValue) s"$expected expected but got ${actual.getOrElse("")}."
+        else s"$expected expected."
+      )
   }
 }
 
 private[check] class ExpectMsgPFValidator(pf: PartialFunction[Any, Unit]) extends Validator[Any] {
   override def name: String = s"expectMsgPf($pf)"
 
-  override def apply(actual: Option[Any]): Validation[Option[Any]] = actual match {
+  override def apply(actual: Option[Any], displayActualValue: Boolean): Validation[Option[Any]] = actual match {
     case Some(message) =>
       if (pf.isDefinedAt(message)) {
         pf(message)
         actual.success
-      } else Failure(s"Unexpected message: $message.")
+      } else
+        Failure(
+          if (displayActualValue) s"Unexpected message: $message."
+          else "Unexpected message"
+        )
     case None => Validator.FoundNothingFailure
   }
 }
